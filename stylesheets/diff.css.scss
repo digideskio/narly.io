@@ -1,0 +1,247 @@
+// Lifted from: https://github.com/gitlabhq/gitlabhq/blob/master/app/assets/stylesheets/sections/diff.scss
+// Contains edits.
+$monospace_font : 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+
+$boder-color: #212121;
+$deleted : red; // not used
+$added : green; // not used
+$old-background-color: #FDD;
+$new-background-color: #CFD;
+$code-holder-background-color: #212121; //#FBF8F5
+
+.diff-file {
+  margin-bottom: 1em;
+  position: relative;
+  .show-content {
+    position: absolute;
+    display: inline-block;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    padding: 5px 10px;
+    background-color: #424242;
+    color: #9e9e9e;
+    text-decoration: none;
+    cursor: pointer;
+    &:hover, &.active {
+      background-color: #ff5722;
+      color: #fbe9e7;
+    }
+  }
+  textarea.file-content {
+    display: none;
+    width: 99%;
+    height: 95%;
+    max-height: 500px;
+    position: absolute;
+    top: 30px;
+    background-color: #333;
+    color: #ccc;
+    font-family: $monospace_font;
+    border:1px solid #000;
+  }
+
+  .diff-header {
+    position: relative;
+    padding: 5px 10px;
+    color: #9e9e9e;
+    background-color: $code-holder-background-color;
+    > strong {
+      font-family: $monospace_font;
+      font-weight: normal;
+    }
+    .diff-btn-group {
+      float: right;
+
+      .btn {
+        background-color: #EEE;
+        color: #666;
+        font-weight: bolder;
+      }
+    }
+
+    .commit-short-id {
+      font-family: $monospace_font;
+      font-size: smaller;
+    }
+
+    .file-mode {
+      font-family: $monospace_font;
+    }
+  }
+  .diff-content {
+    border: 1px solid $boder-color;
+    border-top:0;
+    overflow: auto;
+    overflow-y: hidden;
+    background: #212121;
+    color: #bdbdbd;
+    font-size: 14px;
+    .old {
+      span.idiff {
+        background-color: #FAA;
+      }
+    }
+    .new {
+      span.idiff {
+        background-color: #AFA;
+      }
+    }
+
+    table {
+      width: 100%;
+      font-family: $monospace_font;
+      border: none;
+      margin: 0px;
+      padding: 0px;
+      td {
+        line-height: 20px;
+        font-size: 14px;
+        &.addition {
+          color: #14e715;
+          background-color: rgba(255, 255, 255, 0.02);
+        }
+        &.deletion {
+          color: #e51c23;
+          background-color: rgba(255, 255, 255, 0.02);
+        }
+      }
+    }
+
+    .text-file-parallel div {
+      display: inline-block;
+      padding-bottom: 16px;
+    }
+    .diff-side {
+      overflow-x: scroll;
+      width: 508px;
+      height: 700px;
+    }
+    .diff-side.diff-side-left{
+      overflow-y:hidden;
+    }
+    .diff-side table, td.diff-middle table {
+      height: 700px;
+    }
+    .diff-middle {
+      width: 114px;
+      vertical-align: top;
+      height: 700px;
+      overflow: hidden
+    }
+
+    .old_line, .new_line, .diff_line {
+      margin: 0px;
+      padding: 0px;
+      border: none;
+      background-color: $code-holder-background-color;
+      color: #616161;
+      padding: 0px 5px;
+      border-right: 1px solid #424242;
+      text-align: right;
+      min-width: 35px;
+      max-width: 50px;
+      width: 35px;
+      font-family: Consolas, "Liberation Mono", Courier, monospace;
+      //@include user-select(none);
+      a {
+        float: left;
+        width: 35px;
+        font-weight: normal;
+        color: #666;
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+      &.new {
+        //background: $new-background-color;
+        color: green;
+      }
+      &.old {
+        background: $old-background-color;
+      }
+    }
+    .diff_line {
+      padding: 0;
+    }
+    .line_holder {
+      &.old .old_line,
+      &.old .new_line {
+        background: #FCC;
+        border-color: #E7BABA;
+      }
+      &.new .old_line,
+      &.new .new_line {
+        background: #CFC;
+        border-color: #B9ECB9;
+      }
+      &:hover td {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+    }
+    .line_content {
+      display: block;
+      white-space: pre;
+      height: 20px;
+      margin: 0px;
+      padding: 0px 0.5em;
+      border: none;
+      &.new {
+        //background: $new-background-color;
+        color: green;
+      }
+      &.old {
+        background: $old-background-color;
+      }
+      &.matched {
+        color: #ccc;
+        background: #fafafa;
+      }
+      &.parallel {
+        display: table-cell;
+      }
+    }
+  }
+
+  .view-modes{
+
+    padding: 10px;
+    text-align: center;
+
+    background-image: -webkit-gradient(linear, 0 0, 0 30, color-stop(0.066, #eee), to(#dfdfdf));
+    background-image: -webkit-linear-gradient(#eee 6.6%, #dfdfdf);
+    background-image: -moz-linear-gradient(#eee 6.6%, #dfdfdf);
+    background-image: -ms-linear-gradient(#eee 6.6%, #dfdfdf);
+    background-image: -o-linear-gradient(#eee 6.6%, #dfdfdf);
+
+    ul, li{
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: inline-block;
+    }
+
+    li{
+      color: grey;
+      border-left: 1px solid #c1c1c1;
+      padding: 0 12px 0 16px;
+      cursor: pointer;
+      &:first-child{
+        border-left: none;
+      }
+      &:hover{
+        text-decoration: underline;
+      }
+      &.active{
+        &:hover{
+          text-decoration: none;
+        }
+        cursor: default;
+        color: #333;
+      }
+      &.disabled{
+        display: none;
+      }
+    }
+  }
+}

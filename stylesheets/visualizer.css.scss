@@ -1,0 +1,30 @@
+$modified-color: #F9CF4F;
+$added-color: #64B73A;
+$deleted-color: #F5A2A2;
+
+.g-node {
+  text {
+    fill:#444;
+    font-size: 13px;
+  }
+  &.context {
+    circle {
+      fill: #DDD;
+    }
+  }
+  &.modified {
+    circle {
+      fill: $modified-color;
+    }
+  }
+  &.deleted {
+    circle {
+      fill: $deleted-color;
+    }
+  }
+  &.added {
+    circle {
+      fill: $added-color;
+    }
+  }
+}
