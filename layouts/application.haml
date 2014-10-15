@@ -43,6 +43,6 @@
                 new Narly.StepsView({ collection: collection });
                 new Narly.PrevNextView({ el: '#prev-next', collection: collection });
                 collection.displayFromHash(window.location.hash);
+                new Narly.CodeBar({ collection: collection });
             }});
-        new Narly.TopBar({ el: '#top-bar' });
       });

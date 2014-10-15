@@ -18,17 +18,40 @@ body {
   padding:0;
   margin:0;
   background-color: #efeeeb;
+  position: relative;
 }
 h1, h2, h3, h4, h5, h6 {
   font-weight: normal;
   margin:0 0 20px 0;
 }
-#top-bar {
+.top-bar {
   position: absolute;
   height: 40px;
-  width: 30%;
   z-index: 10;
   background-color: #d2cfc6;
+  &.lesson {
+    width: 30%;
+  }
+  &.code {
+    width: 70%;
+    left: 30%;
+    background-color: #333;
+    a {
+      display: block;
+      float:left;
+      height: 40px;
+      line-height: 40px;
+      color: #ccc;
+      text-decoration: none;
+      padding: 0 20px;
+      &:hover {
+        background-color: #111;
+      }
+      &.active {
+        background-color: #111;
+      }
+    }
+  }
 }
 #start-over {
   position: absolute;
@@ -81,13 +104,6 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 2.7em;
 }
 
-#footer {
-  clear:both;
-  padding:20px 10px;
-  color:#1C9EDB;
-  font-size: 10px;
-}
-
 #commit-container {
   height: 100%;
 }
@@ -116,7 +132,11 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 100%;
   overflow: auto;
   background-color: #111;
+  position: relative;
   float: left;
+  > .section-inner {
+    margin-top: 40px;
+  }
 }
 
 table {

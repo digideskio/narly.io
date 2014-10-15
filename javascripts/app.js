@@ -62,12 +62,6 @@ window.Narly = (function() {
         initialize : function() {
             var self = this;
 
-            $("#main-commit-container").on('click', '.show-content', function() {
-                $(this)
-                    .toggleClass('active')
-                    .next('textarea')
-                        .toggle();
-            });
             $('#start-over').click(function(e) {
                 self
                     .collection
@@ -129,14 +123,47 @@ window.Narly = (function() {
         }
     })
 
-    var TopBar = Backbone.View.extend({
-        events : {
-            'click a.toc-toggle' : 'tocToggle'
+    var CodeBar = Backbone.View.extend({
+        attributes : {
+            'class': 'top-bar code'
         }
         ,
-        tocToggle : function(e) {
-          e.preventDefault();
-          $('body').toggleClass('toc-expand');
+        events : {
+            'click a.changes' : 'changes',
+            'click a.files' : 'files'
+        }
+        ,
+        initialize : function() {
+            this.collection.on('display', function() {
+                this.setActive('changes');
+            }, this);
+
+            var html = '<a href="#" class="changes active">File Changes</a><a href="#" class="files">File Contents</a>';
+            this.$el
+                .html(html)
+                .prependTo($('body'));
+        }
+        ,
+        changes : function(e) {
+            e.preventDefault();
+
+            $('#code-pane').find('iframe').remove();
+            $("#main-commit-container textarea").hide();
+            this.setActive('changes');
+        }
+        ,
+        files : function(e) {
+            e.preventDefault();
+
+            $('#code-pane').find('iframe').remove();
+            $("#main-commit-container textarea").show();
+
+            this.setActive('files');
+        }
+        ,
+        setActive : function(name) {
+            this.$el.find('a').removeClass('active');
+            this.$el.find('a.' + name).addClass('active')
         }
     });
 
@@ -178,7 +205,7 @@ window.Narly = (function() {
         ,
         StepView : StepView
         ,
-        TopBar : TopBar
+        CodeBar : CodeBar
         ,
         PrevNextView : PrevNextView
     }

@@ -2,7 +2,7 @@
   "layout" : "application"
 }
 
-#top-bar
+.top-bar.lesson
   #start-over{ title: "Start over" }
     :plain
       <svg viewBox="-9.5 5.5 24 24" enable-background="new -9.5 5.5 24 24" xml:space="preserve">
@@ -27,7 +27,6 @@
       .diffs-wrap
         {{# diffs }}
         .diff-file{ class: "{{ status }}" }
-          %span.show-content{ href: '#' } view file
           %textarea.file-content{ spellcheck: 'false' }
             {{ content }}
           .diff-header
