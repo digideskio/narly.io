@@ -93,13 +93,10 @@ window.Narly = (function() {
     var StepView = Backbone.View.extend({
         model : Step
         ,
-        attributes : {
-            id: "commit-container"
-        }
-        ,
         initialize : function() {
             this.model.on('display', this.render, this);
-            this.template = $("#commit-container-template").html();
+            this.lessonTemplate = $("#lesson-pane-template").html();
+            this.codeTemplate = $("#code-pane-template").html();
         }
         , 
         render : function() {
@@ -107,14 +104,14 @@ window.Narly = (function() {
 
             var payload = this.model.attributes;
             payload.hasDiffs = payload.diffs.length > 0;
-            var content = Mustache.render(this.template, payload);
-            var view = this.$el.html(content);
+            var lesson = Mustache.render(this.lessonTemplate, { lesson: payload.lesson });
+            var code = Mustache.render(this.codeTemplate, payload);
 
-            $("#main-commit-container").html(view);
+            $("#lesson-pane").html(lesson);
+            $("#code-pane").html(code);
 
             window.location.hash = (this.model.get('index') + 1);
 
-            Narly.$body.scrollTop(0);
             $("#step-status")
                 .text(
                     "step " + (this.model.get('index') + 1)
@@ -147,20 +144,21 @@ window.Narly = (function() {
         changes : function(e) {
             e.preventDefault();
 
-            $('#code-pane').find('iframe').remove();
-            $("#main-commit-container textarea").hide();
+            $('#code-pane').find('textarea').hide();
+
             this.setActive('changes');
         }
         ,
         files : function(e) {
             e.preventDefault();
 
-            $('#code-pane').find('iframe').remove();
-            $("#main-commit-container textarea")
-                .show()
-                .each(function() {
-                    $(this).height($(this).prop('scrollHeight'));
-                });
+            $('#code-pane')
+                .find("textarea")
+                    .show()
+                    .each(function() {
+                        $(this).height($(this).prop('scrollHeight'));
+                    });
+
             this.setActive('files');
         }
         ,

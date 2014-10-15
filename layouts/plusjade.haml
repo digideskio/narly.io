@@ -15,27 +15,29 @@
       %i.fa.fa-chevron-left
   #step-status
 
-#main-commit-container.section-two-wrap
-
-%script{ id: "commit-container-template", type: "x-template" }
+#main-commit-container
   #lesson-pane
-    .section-inner
-      .readme-content
-        {{{ lesson }}}
   #code-pane
-    .section-inner
-      .diffs-wrap
-        {{# diffs }}
-        .diff-file{ class: "{{ status }}" }
-          %textarea.file-content{ spellcheck: 'false' }
-            {{ content }}
-          .diff-header
-            %strong {{ path }}
-          .diff-content
-            {{{ html }}}
-        {{/ diffs }}
-      {{# output }}
-      %h3.section-heading Expected Output
-      {{/ output }}
-      .readme-content
-        {{{ output }}}
+
+%script{ id: "lesson-pane-template", type: "x-template" }
+  .section-inner
+    .readme-content
+      {{{ lesson }}}
+
+%script{ id: "code-pane-template", type: "x-template" }
+  .section-inner
+    .diffs-wrap
+      {{# diffs }}
+      .diff-file{ class: "{{ status }}" }
+        %textarea.file-content{ spellcheck: 'false' }
+          {{ content }}
+        .diff-header
+          %strong {{ path }}
+        .diff-content
+          {{{ html }}}
+      {{/ diffs }}
+    {{# output }}
+    %h3.section-heading Expected Output
+    {{/ output }}
+    .readme-content
+      {{{ output }}}
