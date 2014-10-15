@@ -156,8 +156,11 @@ window.Narly = (function() {
             e.preventDefault();
 
             $('#code-pane').find('iframe').remove();
-            $("#main-commit-container textarea").show();
-
+            $("#main-commit-container textarea")
+                .show()
+                .each(function() {
+                    $(this).height($(this).prop('scrollHeight'));
+                });
             this.setActive('files');
         }
         ,
