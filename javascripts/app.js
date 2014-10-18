@@ -53,7 +53,7 @@ window.Narly = (function() {
         displayName: 'CodePane'
         ,
         getInitialState: function() {
-            return { diffs: [], active: 'changes' };
+            return { diffs: [], active: 'diffs' };
         }
         ,
         componentDidUpdate : function() {
@@ -66,48 +66,22 @@ window.Narly = (function() {
         }
         ,
         render: function() {
-            var diffs = [], contents = [];
+            var tabs = [
+                { class: 'diffs', name: 'File Changes', payload: [] },
+                { class: 'contents', name: 'File Contents', payload: [] }
+            ];
+
             this.state.diffs.forEach(function(diff) {
-                diffs.push(FileDiff(diff));
+                tabs[0].payload.push(FileDiff(diff));
                 diff.key = Math.random(); // need this to make sure file content changes.
-                contents.push(FileContent(diff));
+                tabs[1].payload.push(FileContent(diff));
             });
+            var output = generateReactTabs(tabs, this);
 
             return React.DOM.div(null,
-                        React.DOM.div({ className: "top-bar code" },
-                            React.DOM.a({
-                                    href: "#",
-                                    className: (this.state.active === 'changes' ? 'active' : ''),
-                                    onClick : this.changes
-                                }, 'File Changes'),
-                            React.DOM.a({
-                                    href: "#",
-                                    className: (this.state.active === 'contents' ? 'active' : ''),
-                                    onClick : this.contents
-                                }, 'File Contents')
-                        ),
-                        React.DOM.div({ className: "section-inner" },
-                            React.DOM.div({
-                                        className: "toggle diffs-wrap "
-                                                   + (this.state.active === 'changes' ? 'active' : '')
-                                    }, diffs),
-                            React.DOM.div({
-                                        className: "toggle contents-wrap "
-                                                   + (this.state.active === 'contents' ? 'active' : ''),
-                                        ref: 'contents'
-                                    }, contents)
-                       )
-                   )
-        }
-        ,
-        changes : function (e) {
-            e.preventDefault();
-            this.setState({ active : 'changes' });
-        }
-        ,
-        contents : function (e) {
-            e.preventDefault();
-            this.setState({ active : 'contents' });
+                        React.DOM.div({ className: "top-bar code" }, output.tabs),
+                        React.DOM.div({ className: "section-inner" }, output.sections)
+                   );
         }
     });
 
@@ -251,6 +225,36 @@ window.Narly = (function() {
         }
     });
 
+    // Generate React Tab-based navigation component.
+    // @param[Array] data - array of objects:
+    // {  name: <tab display name>,
+    //    class: <class name identifier>,
+    //    payload: <section content (as compatable with React.DOM argument> }
+    function generateReactTabs(data, self) {
+        var output = { tabs: [], sections: []};
+        data.forEach(function(tab) {
+            output.tabs.push(
+                React.DOM.a({
+                        href: "#",
+                        className: (self.state.active === tab.class ? 'active' : ''),
+                        onClick : function(e) {
+                            e.preventDefault();
+                            self.setState({ active: tab.class });
+                        }
+                    }, tab.name)
+            );
+            output.sections.push(
+                React.DOM.div({
+                        className: "toggle " + tab.class + "-wrap "
+                                   + (self.state.active === tab.class ? 'active' : ''),
+                        ref: tab.class
+                    }, tab.payload)
+            );
+        })
+
+        return output;
+    }
+
     function start(data) {
         Narly.env.steps = new Steps(data);
         Narly.env.steps.fetch({ success : function(collection) {
@@ -262,7 +266,7 @@ window.Narly = (function() {
                 lessonPane.setState({ content : model.get('lesson') });
                 codePane.setState({
                     diffs : model.get('diffs'),
-                    active: 'changes'
+                    active: 'diffs'
                 });
                 controlsBar.setState({
                     index: model.get('index'),
