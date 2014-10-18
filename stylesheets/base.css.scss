@@ -27,7 +27,7 @@ h1, h2, h3, h4, h5, h6 {
 .top-bar {
   position: absolute;
   height: 40px;
-  z-index: 10;
+  z-index: 5;
   background-color: #d2cfc6;
   &.lesson {
     width: 30%;
@@ -97,41 +97,56 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 #step-status {
-  z-index: 10;
-  position: fixed;
+  position: absolute;
   top: 0;
   left:125px;
   line-height: 2.7em;
 }
-
-#main-commit-container {
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  .section-inner {
-    padding:20px;
-  }
-}
 #lesson-pane {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 30%;
   height: 100%;
   overflow: auto;
-  float: left;
   > .section-inner {
     margin-top: 40px;
+    padding: 20px;
   }
 }
-
-#code-pane {
+.main-pane {
+  position: absolute;
+  top: 0;
+  left: 30%;
   width: 70%;
   height: 100%;
   min-height: 100%;
   overflow: auto;
   background-color: #111;
-  position: relative;
-  float: left;
   > .section-inner {
     margin-top: 40px;
+  }
+}
+#code-pane {
+  > .section-inner {
+    padding: 20px;
+  }
+}
+#home-pane {
+  .section {
+    margin-top: 40px;
+    color: #ccc;
+    a {
+      color: #ccc;
+    }
+  }
+  iframe {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 40px;
+    background-color: #FFF;
+    border: 0;
   }
 }
 
@@ -151,10 +166,6 @@ table {
 @media all and (max-width: 767px) {
   #table-of-contents {
     display:none !important;
-  }
-  #main-commit-container {
-    float:none;
-    width:100%;
   }
 }
 

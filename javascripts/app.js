@@ -19,31 +19,6 @@ window.Narly = (function() {
             return rsp.steps;
         }
         ,
-        getPrevFromActive : function() {
-            return this.getFromActive(-1);
-        }
-        ,
-        getNextFromActive : function() {
-            return this.getFromActive(1);
-        }
-        ,
-        getFromActive : function(direction) {
-            var active = this.get(this.activeId),
-                index = this.indexOf(active),
-                max = this.length-1;
-
-            index += direction; 
-
-            if(index < 0) {
-                index = max;
-            }
-            else if (index > max) {
-                index = 0;
-            }
-
-            return this.at(index);
-        }
-        ,
         // Hash represents a step # (not index).
         displayFromHash : function(hash) {
             var step = (hash === '') ? 1 : hash.replace('#', '')*1;
@@ -51,163 +26,241 @@ window.Narly = (function() {
             // convert to index.
             step = (step-1) < 1 ? 0 : step-1;
 
-            return this.at(step).trigger('display');
+            return this.at(step).trigger('display', this.at(step));
         }
     })
 
-    // Steps collection View
-    var StepsView = Backbone.View.extend({
-        collection : Steps
+    var LessonPane = React.createClass({
+        displayName: 'LessonPane'
         ,
-        initialize : function() {
-            var self = this;
-
-            $('#start-over').click(function(e) {
-                self
-                    .collection
-                    .at(0)
-                    .trigger('display');
-
-                e.preventDefault();
-            })
-
-            this.collection.each(function(model) {
-              new Narly.StepView({ model : model });
-            })
-
-            // Left/Right arrow navigation.
-            $(document).keydown(function(e) {
-                if ([37, 39].indexOf(e.keyCode) > -1) {
-                    var direction = (e.keyCode == 37) ? -1 : 1;
-                    self
-                        .collection
-                        .getFromActive(direction)
-                        .trigger('display');
-
-                    return false;
-                }
-            })
-        }
-    })
-
-    var StepView = Backbone.View.extend({
-        model : Step
-        ,
-        initialize : function() {
-            this.model.on('display', this.render, this);
-            this.lessonTemplate = $("#lesson-pane-template").html();
-            this.codeTemplate = $("#code-pane-template").html();
-        }
-        , 
-        render : function() {
-            this.model.collection.activeId = this.model.id;
-
-            var payload = this.model.attributes;
-            payload.hasDiffs = payload.diffs.length > 0;
-            var lesson = Mustache.render(this.lessonTemplate, { lesson: payload.lesson });
-            var code = Mustache.render(this.codeTemplate, payload);
-
-            $("#lesson-pane").html(lesson);
-            $("#code-pane").html(code);
-
-            window.location.hash = (this.model.get('index') + 1);
-
-            $("#step-status")
-                .text(
-                    "step " + (this.model.get('index') + 1)
-                    + " of " + this.model.collection.length
-                );
-        }
-    })
-
-    var CodeBar = Backbone.View.extend({
-        attributes : {
-            'class': 'top-bar code'
+        getInitialState: function() {
+            return { content: null };
         }
         ,
-        events : {
-            'click a.changes' : 'changes',
-            'click a.files' : 'files'
+        render: function() {
+            return React.DOM.div({ className: "section-inner" },
+                        React.DOM.div({
+                            className: "readme-content",
+                            dangerouslySetInnerHTML: {
+                              __html: this.state.content
+                            }
+                        })
+                   );
+        }
+    });
+
+    var CodePane = React.createClass({
+        displayName: 'CodePane'
+        ,
+        getInitialState: function() {
+            return { diffs: [] };
         }
         ,
-        initialize : function() {
-            this.collection.on('display', function() {
-                this.setActive('changes');
-            }, this);
+        render: function() {
+            var diffs = this.state.diffs.map(function(diff) {
+                            return FileDiff(diff);
+                        });
 
-            var html = '<a href="#" class="changes active">File Changes</a><a href="#" class="files">File Contents</a>';
-            this.$el
-                .html(html)
-                .prependTo($('body'));
+            return React.DOM.div({ className: "section-inner" },
+                        React.DOM.div({ className: "diffs-wrap" }, diffs));
+        }
+    });
+
+    var FileDiff = React.createClass({
+        displayName: 'FileDiff'
+        ,
+        render: function() {
+            return React.DOM.div({
+                            className: "diff-file " + this.props.status
+                        },
+                        React.DOM.textarea({
+                                className: "file-content",
+                                spellCheck: 'false',
+                                defaultValue: this.props.content
+                            }
+                        ),
+                        React.DOM.div({ className: "diff-header" },
+                            React.DOM.strong(null, this.props.path)
+                        ),
+                        React.DOM.div({
+                            className: "diff-content",
+                            dangerouslySetInnerHTML: {
+                              __html: this.props.html
+                            }
+                        })
+            );
+        }
+    });
+
+    var CodeBar = React.createClass({
+        displayName: 'CodeBar'
+        ,
+        getInitialState: function() {
+            return { active : 'changes' };
         }
         ,
-        changes : function(e) {
-            e.preventDefault();
-
+        render: function() {
+            return React.DOM.div({ className: "top-bar code" },
+                    React.DOM.a({
+                            href: "#",
+                            className: (this.state.active === 'changes' ? 'active' : null),
+                            onClick : this.changes
+                        }, 'File Changes'),
+                    React.DOM.a({
+                            href: "#",
+                            className: (this.state.active === 'contents' ? 'active' : null),
+                            onClick : this.contents
+                        }, 'File Contents')
+            );
+        }
+        ,
+        changes : function (e) {
+            this.setState({ active : 'changes' });
             $('#code-pane').find('textarea').hide();
-
-            this.setActive('changes');
         }
         ,
-        files : function(e) {
-            e.preventDefault();
-
+        contents : function (e) {
+            this.setState({ active : 'contents' });
             $('#code-pane')
                 .find("textarea")
                     .show()
                     .each(function() {
                         $(this).height($(this).prop('scrollHeight'));
                     });
-
-            this.setActive('files');
-        }
-        ,
-        setActive : function(name) {
-            this.$el.find('a').removeClass('active');
-            this.$el.find('a.' + name).addClass('active')
         }
     });
 
-    var PrevNextView = Backbone.View.extend({
-        collection : Steps
+    // ControlsBar is the main Parent interface into lesson controls.
+    // StartOver, StepStatus, PrevNext.
+    var ControlsBar = React.createClass({
+        displayName: 'ControlsBar'
         ,
-        events : {
-            'click a.prev' : 'prev',
-            'click a.next' : 'next'
+        getInitialState: function() {
+            return { index: 0, step: 1, total: 1 };
+        }
+        ,
+        render: function() {
+            return React.DOM.span(null,
+                        StartOver(),
+                        StepStatus(this.state),
+                        PrevNext(this.state)
+                   );
+        }
+    });
+
+    var StartOver = React.createClass({
+        displayName: 'StartOver'
+        ,
+        getInitialState: function() {
+            return { step: 1, total: 1};
+        }
+        ,
+        render: function() {
+            return React.DOM.div({ 
+                            id: 'start-over',
+                            title: 'Start Over',
+                            onClick: this.startOver
+                        },
+                        React.DOM.svg({
+                                "viewBox": "-9.5 5.5 24 24",
+                                "enable-background": "new -9.5 5.5 24 24",
+                                'xml:space':"preserve"
+                            },
+                            React.DOM.path({
+                                d: "M-7.5,15.5v-8l2.937,2.937C-2.71,8.576-0.199,7.5,2.5,7.5c5.514,0,10,4.486,10,10c0,5.514-4.486,10-10,10  c-4.174,0-7.946-2.631-9.387-6.546c-0.191-0.519,0.075-1.094,0.593-1.284c0.517-0.189,1.093,0.074,1.284,0.593  C-3.857,23.396-0.839,25.5,2.5,25.5c4.411,0,8-3.589,8-8s-3.589-8-8-8c-2.159,0-4.167,0.861-5.651,2.349L0.5,15.5H-7.5z"
+                            })
+                        )
+                    );
+        }
+        ,
+        startOver : function(e) {
+            e.preventDefault();
+            var a = Narly.env.steps.at(0);
+            a.trigger('display', a);
+        }
+    });
+
+    var StepStatus = React.createClass({
+        displayName: 'StepStatus'
+        ,
+        render: function() {
+            return React.DOM.span({ id: 'step-status' },
+                        "step " + this.props.step + " of " + this.props.total);
+        }
+    });
+
+    var PrevNext = React.createClass({
+        displayName: 'PrevNext'
+        ,
+        render: function() {
+            return React.DOM.div({ id: 'prev-next' },
+                    React.DOM.a({
+                            href: "#",
+                            onClick : this.next
+                        }, React.DOM.i({className: 'fa fa-chevron-right' })),
+                    React.DOM.a({
+                            href: "#",
+                            onClick : this.prev
+                        }, React.DOM.i({className: 'fa fa-chevron-left' }))
+            );
         }
         ,
         prev : function(e) {
             e.preventDefault();
-            this
-                .collection
-                .getPrevFromActive()
-                .trigger('display');
+            var a = this.getStep(-1);
+            a.trigger('display', a);
         }
         ,
         next : function(e) {
             e.preventDefault();
-            this
-                .collection
-                .getNextFromActive()
-                .trigger('display');
+            var a = this.getStep(1);
+            a.trigger('display', a);
         }
-    })
+        ,
+        getStep : function(direction) {
+            var index = this.props.index;
+
+            index += direction;
+
+            if(index < 0) {
+                index = (this.props.total - 1);
+            }
+            else if (index > (this.props.total - 1)) {
+                index = 0;
+            }
+
+            return Narly.env.steps.at(index);
+        }
+    });
+
+    function start(data) {
+        Narly.env.steps = new Steps(data);
+        Narly.env.steps.fetch({ success : function(collection) {
+            var lessonPane = React.renderComponent(LessonPane(), document.getElementById('lesson-pane'));
+            var codePane = React.renderComponent(CodePane(), document.getElementById('code-pane'));
+            var codeBar = React.renderComponent(CodeBar(), document.getElementById('code-bar-wrap'));
+            var controlsBar = React.renderComponent(ControlsBar(), document.getElementById('controls-bar'));
+
+            collection.on('display', function(model) {
+                lessonPane.setState({ content : model.get('lesson') });
+                codePane.setState({ diffs : model.get('diffs') });
+                $('#code-pane').find('textarea').hide();
+                codeBar.setState({ active : 'changes' });
+                controlsBar.setState({
+                    index: model.get('index'),
+                    step: (model.get('index') + 1),
+                    total: collection.length
+                });
+                window.location.hash = (model.get('index') + 1);
+            });
+
+            collection.displayFromHash(window.location.hash);
+        }});
+    }
 
     return {
-        $body : $('body')
+        start : start
         ,
         env : {}
-        ,
-        Step : Step
-        ,
-        Steps : Steps
-        ,
-        StepsView : StepsView
-        ,
-        StepView : StepView
-        ,
-        CodeBar : CodeBar
-        ,
-        PrevNextView : PrevNextView
     }
 })();
