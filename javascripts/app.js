@@ -53,16 +53,61 @@ window.Narly = (function() {
         displayName: 'CodePane'
         ,
         getInitialState: function() {
-            return { diffs: [] };
+            return { diffs: [], active: 'changes' };
+        }
+        ,
+        componentDidUpdate : function() {
+            if(this.state.active === 'contents') {
+                $(this.refs.contents.getDOMNode()).find('textarea')
+                    .each(function() {
+                        $(this).height($(this).prop('scrollHeight'));
+                    });
+            }
         }
         ,
         render: function() {
-            var diffs = this.state.diffs.map(function(diff) {
-                            return FileDiff(diff);
-                        });
+            var diffs = [], contents = [];
+            this.state.diffs.forEach(function(diff) {
+                diffs.push(FileDiff(diff));
+                diff.key = Math.random(); // need this to make sure file content changes.
+                contents.push(FileContent(diff));
+            });
 
-            return React.DOM.div({ className: "section-inner" },
-                        React.DOM.div({ className: "diffs-wrap" }, diffs));
+            return React.DOM.div(null,
+                        React.DOM.div({ className: "top-bar code" },
+                            React.DOM.a({
+                                    href: "#",
+                                    className: (this.state.active === 'changes' ? 'active' : ''),
+                                    onClick : this.changes
+                                }, 'File Changes'),
+                            React.DOM.a({
+                                    href: "#",
+                                    className: (this.state.active === 'contents' ? 'active' : ''),
+                                    onClick : this.contents
+                                }, 'File Contents')
+                        ),
+                        React.DOM.div({ className: "section-inner" },
+                            React.DOM.div({
+                                        className: "toggle diffs-wrap "
+                                                   + (this.state.active === 'changes' ? 'active' : '')
+                                    }, diffs),
+                            React.DOM.div({
+                                        className: "toggle contents-wrap "
+                                                   + (this.state.active === 'contents' ? 'active' : ''),
+                                        ref: 'contents'
+                                    }, contents)
+                       )
+                   )
+        }
+        ,
+        changes : function (e) {
+            e.preventDefault();
+            this.setState({ active : 'changes' });
+        }
+        ,
+        contents : function (e) {
+            e.preventDefault();
+            this.setState({ active : 'contents' });
         }
     });
 
@@ -73,12 +118,6 @@ window.Narly = (function() {
             return React.DOM.div({
                             className: "diff-file " + this.props.status
                         },
-                        React.DOM.textarea({
-                                className: "file-content",
-                                spellCheck: 'false',
-                                defaultValue: this.props.content
-                            }
-                        ),
                         React.DOM.div({ className: "diff-header" },
                             React.DOM.strong(null, this.props.path)
                         ),
@@ -92,41 +131,20 @@ window.Narly = (function() {
         }
     });
 
-    var CodeBar = React.createClass({
-        displayName: 'CodeBar'
-        ,
-        getInitialState: function() {
-            return { active : 'changes' };
-        }
+    var FileContent = React.createClass({
+        displayName: 'FileContent'
         ,
         render: function() {
-            return React.DOM.div({ className: "top-bar code" },
-                    React.DOM.a({
-                            href: "#",
-                            className: (this.state.active === 'changes' ? 'active' : null),
-                            onClick : this.changes
-                        }, 'File Changes'),
-                    React.DOM.a({
-                            href: "#",
-                            className: (this.state.active === 'contents' ? 'active' : null),
-                            onClick : this.contents
-                        }, 'File Contents')
-            );
-        }
-        ,
-        changes : function (e) {
-            this.setState({ active : 'changes' });
-            $('#code-pane').find('textarea').hide();
-        }
-        ,
-        contents : function (e) {
-            this.setState({ active : 'contents' });
-            $('#code-pane')
-                .find("textarea")
-                    .show()
-                    .each(function() {
-                        $(this).height($(this).prop('scrollHeight'));
-                    });
+            return React.DOM.div({ className: 'content-wrap' },
+                        React.DOM.div({ className: "content-header" },
+                            React.DOM.strong(null, this.props.path)
+                        ),
+                        React.DOM.textarea({
+                                spellCheck: 'false',
+                                defaultValue: this.props.content
+                            }
+                        )
+                   );
         }
     });
 
@@ -238,14 +256,14 @@ window.Narly = (function() {
         Narly.env.steps.fetch({ success : function(collection) {
             var lessonPane = React.renderComponent(LessonPane(), document.getElementById('lesson-pane'));
             var codePane = React.renderComponent(CodePane(), document.getElementById('code-pane'));
-            var codeBar = React.renderComponent(CodeBar(), document.getElementById('code-bar-wrap'));
             var controlsBar = React.renderComponent(ControlsBar(), document.getElementById('controls-bar'));
 
             collection.on('display', function(model) {
                 lessonPane.setState({ content : model.get('lesson') });
-                codePane.setState({ diffs : model.get('diffs') });
-                $('#code-pane').find('textarea').hide();
-                codeBar.setState({ active : 'changes' });
+                codePane.setState({
+                    diffs : model.get('diffs'),
+                    active: 'changes'
+                });
                 controlsBar.setState({
                     index: model.get('index'),
                     step: (model.get('index') + 1),

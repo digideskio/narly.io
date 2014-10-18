@@ -9,6 +9,13 @@ $old-background-color: #FDD;
 $new-background-color: #CFD;
 $code-holder-background-color: #212121; //#FBF8F5
 
+.toggle {
+  display: none;
+  &.active {
+    display: block;
+  }
+}
+
 .diff-file {
   margin-bottom: 1em;
   position: relative;
@@ -27,18 +34,6 @@ $code-holder-background-color: #212121; //#FBF8F5
       background-color: #ff5722;
       color: #fbe9e7;
     }
-  }
-  textarea.file-content {
-    display: none;
-    width: 99%;
-    height: 95%;
-    position: absolute;
-    top: 30px;
-    background-color: #333;
-    color: #ccc;
-    font-family: $monospace_font;
-    font-size: 13px;
-    border:1px solid #000;
   }
 
   .diff-header {
@@ -243,5 +238,23 @@ $code-holder-background-color: #212121; //#FBF8F5
         display: none;
       }
     }
+  }
+}
+
+.contents-wrap {
+  .content-header {
+    position: relative;
+    padding: 5px 10px;
+    color: #9e9e9e;
+    background-color: $code-holder-background-color;
+  }
+  textarea {
+    width: 100%;
+    min-height: 300px;
+    background-color: #333;
+    color: #ccc;
+    font-family: $monospace_font;
+    font-size: 13px;
+    border: 1px solid #000;
   }
 }
