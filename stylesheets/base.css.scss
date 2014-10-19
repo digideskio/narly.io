@@ -80,20 +80,18 @@ h1, h2, h3, h4, h5, h6 {
     display:block;
     float:right;
     padding: 0 20px;
-    line-height: 40px;
+    line-height: 45px;
     color: #FFF;
     background-color: $orange;
     text-decoration: none;
     &:hover {
       background-color: #ff3d00;
     }
-    &.prev {
-
+    svg {
+      fill: #FFF;
+      width: 16px;
+      height: 16px;
     }
-    &.next {
-
-    }
-
   }
 }
 #step-status {

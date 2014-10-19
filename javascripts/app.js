@@ -189,11 +189,23 @@ window.Narly = (function() {
                     React.DOM.a({
                             href: "#",
                             onClick : this.next
-                        }, React.DOM.i({className: 'fa fa-chevron-right' })),
+                        },
+                        React.DOM.svg({ "viewBox": "0 0 16 16" },
+                            React.DOM.path({
+                                d: "M.156 0l.125.125 7.906 7.875-8 8h5.625l6.594-6.594 1.438-1.406-1.438-1.406-6.563-6.594h-5.688z"
+                            })
+                        )
+                    ),
                     React.DOM.a({
                             href: "#",
                             onClick : this.prev
-                        }, React.DOM.i({className: 'fa fa-chevron-left' }))
+                        },
+                        React.DOM.svg({ "viewBox": "0 0 16 16" },
+                            React.DOM.path({
+                                d: "M10.188 0l-6.594 6.594-1.438 1.406 1.438 1.406 6.563 6.594h5.688l-.125-.125-7.906-7.875 8-8h-5.625z"
+                            })
+                        )
+                    )
             );
         }
         ,
