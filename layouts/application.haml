@@ -26,13 +26,13 @@
     = content
 
     - if env == "production"
-      <script src='//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js'></script>
+      <script src='//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'></script>
       <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
       <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
       = javascripts.load("react/react.min.0.11.2.js")
     - else
       = javascripts.load("react/react.0.11.2.js")
-      = javascripts.load("offline/jquery.min.js")
+      = javascripts.load("offline/jquery-1.11.1.min.js")
       = javascripts.load("offline/underscore-min.js")
       = javascripts.load("offline/backbone-min.js")
     = javascripts.load("application.js")
