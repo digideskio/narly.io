@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <meta charset="utf-8">
+      <meta name="description" content="Your description goes here">
+      <meta name="keywords" content="one, two, three">
+
+    <title>Blank Template</title>
+
+    <!-- external CSS link -->
+    <style>
+      /* Box Model Hack */
+      * {
+           -moz-box-sizing: border-box; /* Firexfox */
+           -webkit-box-sizing: border-box; /* Safari/Chrome/iOS/Android */
+           box-sizing: border-box; /* IE */
+      }
+
+      /* Clear fix hack */
+      .clearfix:after {
+           content: ".";
+           display: block;
+           clear: both;
+           visibility: hidden;
+           line-height: 0;
+           height: 0;
+      }
+
+      .clear {
+        clear: both;
+      }
+
+      .alignright {
+        float: right; 
+        padding: 0 0 10px 10px; /* note the padding around a right floated image */
+      }
+
+      .alignleft {
+        float: left; 
+        padding: 0 10px 10px 0; /* note the padding around a left floated image */
+      }
+
+      body {
+           color: #000;
+           font-size: 12px;
+           line-height: 1.4;
+           font-family: Helvetica, Arial, sans-serif;
+      }
+
+      header {
+        text-align: center;
+      }
+
+      #mainarea {
+           text-align: center;
+           margin-bottom: 50px;
+           margin-top: 30px;
+      }
+
+      #prompt {
+           background: #fece17;
+      }
+
+      #usertext {
+           background: #99ff99;
+      }
+
+      #resultarea {
+           font-size: 24px;
+           border: 3px dotted gray;
+      }
+
+      button {
+           color: white;
+           font-size: 24px;
+           background: blue;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <header>
+        <h1>Welcome to the Typing Test!</h1>
+        <ul>
+          <li>Click on the <strong>Start Test</strong> button</li>
+          <li>Type the phrase that appears in the orange box into the light green box as fast as you can</li>
+          <li>Click on the DONE! button. Your results will be displayed at the bottom of the page</li>
+        </ul>
+      </header>
+      <div id="mainarea">
+        <p id="difficulty">
+          <button>Easy Test</button>
+          <button>Medium Test</button>
+          <button>Hard Test</button>
+        </p>
+        <p>
+          <textarea id="prompt" rows="5" cols="80"></textarea>
+        </p>
+        <form>
+          <p>
+            <label for="usertext"><strong>Your Input</strong></label>
+            <br>
+            <input id="usertext" name="usertext" size="80"></input>
+          </p>
+          <p>
+            <button id="donebutton" type="submit">DONE!</button>
+          </p>
+        </form>
+
+        <div id="resultarea">
+          <p id="resulttext">You typed X words in Y seconds, a speed of about Z words per minute!</p>
+          <!-- If user types in text that does not match the prompt text, then say
+             "You made an error, but your typing speed was Z words per minute"
+          -->
+        </div><!-- #resultarea -->
+      </div><!-- #mainarea -->
+      <footer>
+        &copy; Footer Goes Here
+      </footer>
+    </div><!-- #container -->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script>
+      $(document).ready(function() {
+          var startTime;
+          var prompts = [
+              'lorem ipsum sic dolor',
+              'The quick brown fox jumped over the lazy dog and I followed in kind',
+              'To go into solitude, a man needs to retire as much from his chamber as from society. I am not solitary whilst I read and write, though nobody is with me. But if a man would be alone, let him look at the stars.'
+          ];
+          var promptIndex;
+
+          $("#difficulty button").click(setDifficulty);
+          $("#donebutton").click(finishTest);
+          $('form').submit(function(e) {
+              e.preventDefault();
+              finishTest();
+          })
+          $('#usertext').keypress(function() {
+              var output = getTypingSpeedOutput($("#usertext").val());
+              $('#resulttext').html(output);
+          })
+
+          function setDifficulty() {
+              promptIndex = $(this).index();
+              $('#prompt').val(prompts[promptIndex]);
+              startTime = new Date();
+          }
+
+          function finishTest() {
+              var userText = $("#usertext").val();
+
+              if(prompts[promptIndex] === userText) {
+                  var output = getTypingSpeedOutput(userText);
+                  $('#resulttext').html(output);
+              }
+              else {
+                  $('#resulttext').html("You've made a typo! =/ Please start over.")
+              }
+          }
+
+          function getTypingSpeedOutput(userText) {
+              endTime = new Date();
+              var totalTime = Math.round((endTime - startTime)/1000);
+              var words = userText.split(' ');
+
+              var typingspeed = Math.round(words.length/totalTime * 60);
+
+              return ('You typed '+ words.length + ' words in '
+                      + totalTime + ' seconds, a speed of about '
+                      + typingspeed +' words per minute!');
+
+          }
+      });
+    </script>
+
+  </body>
+</html>
