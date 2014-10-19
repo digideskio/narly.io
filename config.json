@@ -1,4 +1,8 @@
 {
+    "plusjade" : {
+        "layout" : "application"
+    }
+    ,
     "steps" : {
         "use" : "static"
     }
