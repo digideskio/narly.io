@@ -24,17 +24,22 @@
     #controls-bar.top-bar.lesson
     #lesson-pane
     #code-pane.main-pane
+    #home-pane.main-pane
 
     - if env == "production"
       <script src='//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'></script>
       <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
-      <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
       = javascripts.load("react/react.min.0.11.2.js")
     - else
       = javascripts.load("react/react.0.11.2.js")
       = javascripts.load("offline/jquery-1.11.1.min.js")
       = javascripts.load("offline/underscore-min.js")
-      = javascripts.load("offline/backbone-min.js")
     = javascripts.load("application.js")
     :javascript
-      Narly.start({ courseName: "#{ page.courseName }" });
+      Narly.start({
+          courseName: "#{ page.courseName }",
+          index: 0,
+          total: 12,
+          works : "<p>The tutorial shows step by step code changes. Removed code is red while added code is green. Navigate the steps by the orange back and forward arrows -- the keyboard arrows work as well.</p><p>Test and run the code yourself at any time by downloading the source, then clicking \"View File\" on the top right of the code to copy that file's contents at that given step.</p>",
+          lesson: "This is the home page content ^_^"
+      });

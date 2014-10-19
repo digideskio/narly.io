@@ -1,34 +1,49 @@
 window.Narly = (function() {
-    var Step = Backbone.Model.extend({
-        idAttribute: 'index'
-    });
-
     // Steps collection
-    var Steps = Backbone.Collection.extend({
-        model: Step
-        ,
-        initialize : function(args) {
-            this.courseName = args.courseName;
-        }
-        ,
-        url : function() {
-            return '/steps/' + this.courseName + '.json';
-        }
-        ,
-        parse : function(rsp) {
-            return rsp.steps;
-        }
-        ,
-        // Hash represents a step # (not index).
-        displayFromHash : function(hash) {
-            var step = (hash === '') ? 1 : hash.replace('#', '')*1;
-            if(_.isNaN(step)){ step = 1 };
-            // convert to index.
-            step = (step-1) < 1 ? 0 : step-1;
+    var Steps = function(args) {
+        var _data = [],
+            isSynced
+        ;
 
-            return this.at(step).trigger('display', this.at(step));
+        this.display = display;
+        this.add = add;
+        this.total = total;
+
+        function display(index) {
+            // Optimize the display of the homepage by not requiring fetch().
+            if(index === 0 || isSynced) {
+                Narly.dispatch.trigger('display', [get(index)]);
+            }
+            else {
+                $.ajax({
+                    url: '/steps/' + args.courseName + '.json',
+                    dataType: "JSON"
+                })
+                .done(function(rsp) {
+                    isSynced = true;
+                    rsp.steps.forEach(function(step, i) {
+                        step.index = i+1;
+                    });
+
+                    add(rsp.steps);
+
+                    Narly.dispatch.trigger('display', [get(index)]);
+                })
+            }
         }
-    })
+
+        function add(array) {
+            Array.prototype.push.apply(_data, array);
+        }
+
+        function get(index) {
+            return _data[index];
+        }
+
+        function total() {
+            return _data.length;
+        }
+    };
 
     var LessonPane = React.createClass({
         displayName: 'LessonPane'
@@ -122,13 +137,53 @@ window.Narly = (function() {
         }
     });
 
+    var HomePane = React.createClass({
+        displayName: 'HomePane'
+        ,
+        getInitialState: function() {
+            return { courseName: null, active : 'result' };
+        }
+        ,
+        render: function() {
+            var tabs = [
+                { class: 'result', name: 'Final Results',
+                    payload: (
+                        this.state.courseName
+                            ? React.DOM.iframe({ src: "/steps/"+ this.state.courseName + ".html", seamless: 'seamless' })
+                            : null
+                        )
+                },
+                { class: 'source', name: 'Source Code',
+                    payload: React.DOM.ul(null,
+                                React.DOM.li(null, React.DOM.a({ href: '#' }, 'GitHub')),
+                                React.DOM.li(null, React.DOM.a({ href: '#' }, 'Download ZIP'))
+                             )
+                },
+                { class: 'works', name: 'How This Works',
+                    payload:
+                        React.DOM.div({
+                            dangerouslySetInnerHTML: {
+                              __html: this.state.works
+                            }
+                        })
+                }
+            ];
+            var output = generateReactTabs(tabs, this);
+
+            return React.DOM.div(null,
+                        React.DOM.div({ className: "top-bar code" }, output.tabs),
+                        React.DOM.div({ className: "sections-wrap" }, output.sections)
+                   );
+        }
+    });
+
     // ControlsBar is the main Parent interface into lesson controls.
     // StartOver, StepStatus, PrevNext.
     var ControlsBar = React.createClass({
         displayName: 'ControlsBar'
         ,
         getInitialState: function() {
-            return { index: 0, step: 1, total: 1 };
+            return { index: 0, total: 1 };
         }
         ,
         render: function() {
@@ -142,10 +197,6 @@ window.Narly = (function() {
 
     var StartOver = React.createClass({
         displayName: 'StartOver'
-        ,
-        getInitialState: function() {
-            return { step: 1, total: 1};
-        }
         ,
         render: function() {
             return React.DOM.div({ 
@@ -167,8 +218,7 @@ window.Narly = (function() {
         ,
         startOver : function(e) {
             e.preventDefault();
-            var a = Narly.env.steps.at(0);
-            a.trigger('display', a);
+            Narly.steps.display(0);
         }
     });
 
@@ -177,7 +227,7 @@ window.Narly = (function() {
         ,
         render: function() {
             return React.DOM.span({ id: 'step-status' },
-                        "step " + this.props.step + " of " + this.props.total);
+                        "step " + this.props.index + " of " + this.props.total);
         }
     });
 
@@ -211,17 +261,15 @@ window.Narly = (function() {
         ,
         prev : function(e) {
             e.preventDefault();
-            var a = this.getStep(-1);
-            a.trigger('display', a);
+            Narly.steps.display(this.getIndex(-1));
         }
         ,
         next : function(e) {
             e.preventDefault();
-            var a = this.getStep(1);
-            a.trigger('display', a);
+            Narly.steps.display(this.getIndex(1));
         }
         ,
-        getStep : function(direction) {
+        getIndex : function(direction) {
             var index = this.props.index;
 
             index += direction;
@@ -233,7 +281,7 @@ window.Narly = (function() {
                 index = 0;
             }
 
-            return Narly.env.steps.at(index);
+            return index;
         }
     });
 
@@ -267,34 +315,55 @@ window.Narly = (function() {
         return output;
     }
 
-    function start(data) {
-        Narly.env.steps = new Steps(data);
-        Narly.env.steps.fetch({ success : function(collection) {
-            var lessonPane = React.renderComponent(LessonPane(), document.getElementById('lesson-pane'));
-            var codePane = React.renderComponent(CodePane(), document.getElementById('code-pane'));
-            var controlsBar = React.renderComponent(ControlsBar(), document.getElementById('controls-bar'));
+    // Get the index from url hash.
+    function indexFromHash(hash) {
+        var step = (hash === '') ? 0 : hash.replace('#', '')*1;
+        if(_.isNaN(step)){ step = 0 };
 
-            collection.on('display', function(model) {
-                lessonPane.setState({ content : model.get('lesson') });
+        return (step < 1) ? 0 : step;
+    }
+
+    function start(data) {
+        Narly.dispatch = new EventEmitter();
+
+        Narly.steps = new Steps(data);
+        Narly.steps.add([data]);
+
+        var controlsBar = React.renderComponent(ControlsBar(), document.getElementById('controls-bar'));
+        var lessonPane = React.renderComponent(LessonPane(), document.getElementById('lesson-pane'));
+        var homePane = React.renderComponent(HomePane(), document.getElementById('home-pane'));
+        var codePane = React.renderComponent(CodePane(), document.getElementById('code-pane'));
+
+        Narly.dispatch.on('display', function(step) {
+            var index = step.index,
+                className;
+            ;
+            lessonPane.setState({ content : step.lesson });
+
+            // homepage
+            if(index === 0) {
+                homePane.setState(step);
+                className = 'home';
+            }
+            else {
                 codePane.setState({
-                    diffs : model.get('diffs'),
+                    diffs : step.diffs,
                     active: 'diffs'
                 });
-                controlsBar.setState({
-                    index: model.get('index'),
-                    step: (model.get('index') + 1),
-                    total: collection.length
-                });
-                window.location.hash = (model.get('index') + 1);
-            });
+                className = 'code';
+            }
 
-            collection.displayFromHash(window.location.hash);
-        }});
+            // Hack way to toggle codePane vs HomePane
+            document.getElementsByTagName('body')[0].className = className;
+            window.location.hash = index;
+            controlsBar.setState({ index: index });
+        });
+
+        controlsBar.setState({ total: data.total });
+        Narly.steps.display(indexFromHash(window.location.hash));
     }
 
     return {
         start : start
-        ,
-        env : {}
     }
 })();
