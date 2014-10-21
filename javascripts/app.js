@@ -185,7 +185,7 @@ window.Narly = (function() {
                 { class: 'demo',
                     payload: (
                         this.state.courseName
-                            ? React.DOM.iframe({ src: "/steps/"+ this.state.courseName + ".html", seamless: 'seamless' })
+                            ? React.DOM.iframe({ src: "/steps/"+ this.state.courseName + "-demo.html", seamless: 'seamless' })
                             : null
                         ),
                     icon: [
